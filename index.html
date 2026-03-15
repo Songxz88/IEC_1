@@ -1,427 +1,621 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="zh-CN">
 <head>
-
-<meta charset="UTF-8">
-
-<title>Data Center IEC Cooling Designer</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-
-body{
-font-family:Arial;
-background:#f4f6fb;
-margin:40px;
-}
-
-.container{
-max-width:1100px;
-margin:auto;
-background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 6px 18px rgba(0,0,0,0.1);
-}
-
-h1{
-text-align:center;
-margin-bottom:30px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:30px;
-}
-
-.section{
-background:#f9fbff;
-padding:20px;
-border-radius:8px;
-}
-
-label{
-display:block;
-margin-top:10px;
-}
-
-input,select{
-padding:6px;
-margin-left:10px;
-}
-
-button{
-margin-top:20px;
-padding:10px 25px;
-background:#007bff;
-color:white;
-border:none;
-border-radius:6px;
-font-size:16px;
-cursor:pointer;
-}
-
-button:hover{
-background:#0056b3;
-}
-
-.results{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:20px;
-margin-top:30px;
-}
-
-.card{
-background:#f0f4ff;
-padding:15px;
-border-radius:8px;
-text-align:center;
-}
-
-.value{
-font-size:22px;
-font-weight:bold;
-}
-
-.summary{
-margin-top:25px;
-background:#eef6ff;
-padding:20px;
-border-radius:8px;
-}
-
-.chart-container{
-margin-top:40px;
-}
-
-</style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Center IEC Cooling Design Tool</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      background:#f4f7fb;
+      color:#1f2937;
+    }
+    .container{
+      max-width:1200px;
+      margin:30px auto;
+      padding:24px;
+    }
+    .header{
+      background:#ffffff;
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.08);
+      margin-bottom:24px;
+    }
+    h1{
+      margin:0 0 8px 0;
+      font-size:30px;
+    }
+    .subtitle{
+      color:#6b7280;
+      font-size:14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:24px;
+      margin-bottom:24px;
+    }
+    .panel{
+      background:#ffffff;
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.06);
+    }
+    .panel h2{
+      margin-top:0;
+      font-size:20px;
+    }
+    .field{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin:12px 0;
+    }
+    .field label{
+      flex:1;
+      font-size:14px;
+    }
+    .field input, .field select{
+      width:180px;
+      padding:9px 10px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      background:#fff;
+      font-size:14px;
+    }
+    .actions{
+      margin-top:18px;
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:none;
+      border-radius:10px;
+      padding:11px 18px;
+      font-size:14px;
+      cursor:pointer;
+      background:#2563eb;
+      color:white;
+    }
+    button.secondary{
+      background:#64748b;
+    }
+    button:hover{
+      opacity:0.92;
+    }
+    .results{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0,1fr));
+      gap:16px;
+      margin-bottom:24px;
+    }
+    .card{
+      background:#ffffff;
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.06);
+      min-height:100px;
+    }
+    .card-title{
+      color:#64748b;
+      font-size:13px;
+      margin-bottom:10px;
+    }
+    .card-value{
+      font-size:24px;
+      font-weight:700;
+      color:#0f172a;
+      line-height:1.2;
+    }
+    .summary{
+      background:#ffffff;
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.06);
+      margin-bottom:24px;
+    }
+    .summary h2{
+      margin-top:0;
+    }
+    .charts{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:24px;
+    }
+    .chart-panel{
+      background:#ffffff;
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.06);
+    }
+    .note{
+      color:#64748b;
+      font-size:13px;
+      margin-top:10px;
+    }
+    .footer-note{
+      margin-top:20px;
+      color:#6b7280;
+      font-size:13px;
+    }
+    @media (max-width: 980px){
+      .grid, .charts, .results{
+        grid-template-columns:1fr;
+      }
+      .field{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .field input, .field select{
+        width:100%;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-<div class="container">
-
-<h1>Data Center IEC Cooling Design Tool</h1>
-
-<div class="grid">
-
-<div class="section">
-
-<h3>City Climate</h3>
-
-<select id="city" onchange="loadCity()">
-
-<option value="custom">Custom</option>
-<option value="london">London</option>
-<option value="birmingham">Birmingham</option>
-<option value="dubai">Dubai</option>
-<option value="singapore">Singapore</option>
-
-</select>
-
-<label>
-Dry Bulb (°C)
-<input id="dryBulb" value="32">
-</label>
-
-<label>
-Relative Humidity (%)
-<input id="humidity" value="40">
-</label>
-
-</div>
-
-<div class="section">
-
-<h3>Data Center</h3>
-
-<label>
-Rack Number
-<input id="rackNumber" value="100">
-</label>
-
-<label>
-Rack Power (kW)
-<input id="rackPower" value="10">
-</label>
-
-<label>
-Return Air Temp (°C)
-<input id="returnTemp" value="35">
-</label>
-
-<label>
-IEC Efficiency
-<input id="efficiency" value="0.7">
-</label>
-
-<button onclick="calculate()">Calculate</button>
-
-</div>
-
-</div>
-
-<div class="results">
-
-<div class="card">
-IT Load
-<div class="value" id="itLoad">-</div>
-</div>
-
-<div class="card">
-Wet Bulb
-<div class="value" id="wetBulb">-</div>
-</div>
-
-<div class="card">
-Supply Temp
-<div class="value" id="supplyTemp">-</div>
-</div>
-
-<div class="card">
-Airflow
-<div class="value" id="airflow">-</div>
-</div>
-
-<div class="card">
-Water Use
-<div class="value" id="waterUse">-</div>
-</div>
-
-<div class="card">
-PUE
-<div class="value" id="pue">-</div>
-</div>
-
-<div class="card">
-HX Area
-<div class="value" id="hxArea">-</div>
-</div>
-
-<div class="card">
-HX Face Area
-<div class="value" id="hxFace">-</div>
-</div>
-
-</div>
-
-<div class="summary">
-
-<h3>Engineering Assessment</h3>
-
-<p id="summaryText">
-
-Run calculation to see system assessment.
-
-</p>
-
-</div>
-
-<div class="chart-container">
-
-<canvas id="effChart"></canvas>
-
-</div>
-
-<div class="chart-container">
-
-<canvas id="airChart"></canvas>
-
-</div>
-
-</div>
-
-<script>
-
-function loadCity(){
-
-let city=document.getElementById("city").value;
-
-if(city=="london"){
-dryBulb.value=28;
-humidity.value=50;
-}
-
-if(city=="birmingham"){
-dryBulb.value=27;
-humidity.value=55;
-}
-
-if(city=="dubai"){
-dryBulb.value=42;
-humidity.value=25;
-}
-
-if(city=="singapore"){
-dryBulb.value=33;
-humidity.value=75;
-}
-
-}
-
-function wetBulbTemp(T,RH){
-
-let twb =
-T*Math.atan(0.151977*Math.sqrt(RH+8.313659))+
-Math.atan(T+RH)-
-Math.atan(RH-1.676331)+
-0.00391838*Math.pow(RH,1.5)*Math.atan(0.023101*RH)-
-4.686035;
-
-return twb;
-
-}
-
-function heatExchangerDesign(loadKW,airflow){
-
-let Q=loadKW*1000;
-
-let U=40;
-
-let dT=8;
-
-let area=Q/(U*dT);
-
-let faceVelocity=2.5;
-
-let faceArea=airflow/faceVelocity;
-
-return{area:area,faceArea:faceArea};
-
-}
-
-function calculate(){
-
-let racks=parseFloat(document.getElementById("rackNumber").value);
-let rackPower=parseFloat(document.getElementById("rackPower").value);
-let returnTemp=parseFloat(document.getElementById("returnTemp").value);
-
-let Tdb=parseFloat(document.getElementById("dryBulb").value);
-let RH=parseFloat(document.getElementById("humidity").value);
-
-let efficiency=parseFloat(document.getElementById("efficiency").value);
-
-if(RH>100||RH<0){
-alert("Humidity must be 0-100%");
-return;
-}
-
-if(efficiency>1||efficiency<0){
-alert("Efficiency must be 0-1");
-return;
-}
-
-let itLoad=racks*rackPower;
-
-let Twb=wetBulbTemp(Tdb,RH);
-
-let supply=Tdb-efficiency*(Tdb-Twb);
-
-let airflow=(itLoad*1000)/(1.2*1005*(returnTemp-supply));
-
-let water=(itLoad*1000)/2450000*3600/1000;
-
-let fanPower=airflow*0.8;
-
-let pue=(itLoad+fanPower)/itLoad;
-
-let hx=heatExchangerDesign(itLoad,airflow);
-
-document.getElementById("itLoad").innerText=itLoad.toFixed(1)+" kW";
-document.getElementById("wetBulb").innerText=Twb.toFixed(1)+" °C";
-document.getElementById("supplyTemp").innerText=supply.toFixed(1)+" °C";
-document.getElementById("airflow").innerText=airflow.toFixed(1)+" m³/s";
-document.getElementById("waterUse").innerText=water.toFixed(2)+" m³/h";
-document.getElementById("pue").innerText=pue.toFixed(2);
-
-document.getElementById("hxArea").innerText=hx.area.toFixed(0)+" m²";
-document.getElementById("hxFace").innerText=hx.faceArea.toFixed(1)+" m²";
-
-let mode="";
-
-if(supply<=27){
-
-mode="IEC cooling alone can meet server inlet temperature.";
-
-}else{
-
-mode="Mechanical cooling assist required.";
-
-}
-
-document.getElementById("summaryText").innerText=
-"Supply air temperature "+supply.toFixed(1)+"°C. "+
-mode+
-" Estimated airflow "+airflow.toFixed(1)+" m³/s. "+
-"Heat exchanger area "+hx.area.toFixed(0)+" m².";
-
-drawCharts(Tdb,Twb,itLoad);
-
-}
-
-function drawCharts(Tdb,Twb,itLoad){
-
-let eff=[];
-let temp=[];
-
-for(let e=0.4;e<=0.9;e+=0.05){
-
-eff.push(e.toFixed(2));
-
-temp.push(Tdb-e*(Tdb-Twb));
-
-}
-
-new Chart(document.getElementById("effChart"),{
-
-type:"line",
-
-data:{
-labels:eff,
-datasets:[{
-label:"Supply Temp vs IEC Efficiency",
-data:temp,
-borderColor:"blue"
-}]
-}
-
-});
-
-let load=[];
-let airflow=[];
-
-for(let L=200;L<=2000;L+=200){
-
-load.push(L);
-
-airflow.push((L*1000)/(1.2*1005*10));
-
-}
-
-new Chart(document.getElementById("airChart"),{
-
-type:"line",
-
-data:{
-labels:load,
-datasets:[{
-label:"Airflow vs IT Load",
-data:airflow,
-borderColor:"green"
-}]
-}
-
-});
-
-}
-
-</script>
-
+  <div class="container">
+    <div class="header">
+      <h1>Data Center IEC Cooling Design Tool</h1>
+      <div class="subtitle">
+        数据中心间接蒸发冷却系统设计工具：负荷、送风、风量、换热器、风机、水耗与 PUE
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <h2>气象与运行条件</h2>
+
+        <div class="field">
+          <label for="city">城市预设</label>
+          <select id="city" onchange="loadCityPreset()">
+            <option value="custom">Custom</option>
+            <option value="london">London</option>
+            <option value="birmingham">Birmingham</option>
+            <option value="beijing">Beijing</option>
+            <option value="dubai">Dubai</option>
+            <option value="singapore">Singapore</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dryBulb">室外干球温度 Tdb (°C)</label>
+          <input id="dryBulb" type="number" value="32" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="humidity">相对湿度 RH (%)</label>
+          <input id="humidity" type="number" value="40" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="efficiency">IEC 系统有效度 ε</label>
+          <input id="efficiency" type="number" value="0.70" step="0.01">
+        </div>
+
+        <div class="field">
+          <label for="secondaryRatio">二次空气比例</label>
+          <input id="secondaryRatio" type="number" value="0.40" step="0.01">
+        </div>
+
+        <div class="field">
+          <label for="faceVelocity">迎风面风速 (m/s)</label>
+          <input id="faceVelocity" type="number" value="2.5" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="uValue">换热器总传热系数 U (W/m²·K)</label>
+          <input id="uValue" type="number" value="40" step="1">
+        </div>
+
+        <div class="field">
+          <label for="deltaTlm">对数平均温差 ΔTlm (K)</label>
+          <input id="deltaTlm" type="number" value="8" step="0.1">
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>数据中心与设备参数</h2>
+
+        <div class="field">
+          <label for="rackNumber">机柜数量</label>
+          <input id="rackNumber" type="number" value="100" step="1">
+        </div>
+
+        <div class="field">
+          <label for="rackPower">单机柜功率 (kW)</label>
+          <input id="rackPower" type="number" value="10" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="returnTemp">机房回风温度 (°C)</label>
+          <input id="returnTemp" type="number" value="35" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="designSupplyLimit">目标送风上限 (°C)</label>
+          <input id="designSupplyLimit" type="number" value="27" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="pressureDrop">风机压降 ΔP (Pa)</label>
+          <input id="pressureDrop" type="number" value="300" step="10">
+        </div>
+
+        <div class="field">
+          <label for="fanEfficiency">风机效率 η</label>
+          <input id="fanEfficiency" type="number" value="0.60" step="0.01">
+        </div>
+
+        <div class="field">
+          <label for="channelGap">板间距 / 通道宽度 (m)</label>
+          <input id="channelGap" type="number" value="0.006" step="0.001">
+        </div>
+
+        <div class="field">
+          <label for="channelHeight">通道高度 (m)</label>
+          <input id="channelHeight" type="number" value="1.0" step="0.1">
+        </div>
+
+        <div class="field">
+          <label for="hxDepth">换热器深度估算 (m)</label>
+          <input id="hxDepth" type="number" value="1.2" step="0.1">
+        </div>
+
+        <div class="actions">
+          <button onclick="calculateIEC()">开始计算</button>
+          <button class="secondary" onclick="resetDefaults()">恢复默认值</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="results">
+      <div class="card">
+        <div class="card-title">IT 负荷</div>
+        <div class="card-value" id="itLoad">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">湿球温度</div>
+        <div class="card-value" id="wetBulb">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">送风温度</div>
+        <div class="card-value" id="supplyTemp">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">总送风量</div>
+        <div class="card-value" id="airflow">-</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">一次空气量</div>
+        <div class="card-value" id="primaryAir">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">二次空气量</div>
+        <div class="card-value" id="secondaryAir">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">HX Face Area</div>
+        <div class="card-value" id="hxFaceArea">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">HX Area</div>
+        <div class="card-value" id="hxArea">-</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">通道数量估算</div>
+        <div class="card-value" id="channelNumber">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">换热器尺寸估算</div>
+        <div class="card-value" id="hxSize">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">风机功率</div>
+        <div class="card-value" id="fanPower">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">蒸发耗水</div>
+        <div class="card-value" id="waterUse">-</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">PUE 估算</div>
+        <div class="card-value" id="pue">-</div>
+      </div>
+      <div class="card">
+        <div class="card-title">运行模式</div>
+        <div class="card-value" id="mode">-</div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <h2>工程结论</h2>
+      <div id="summaryText">点击“开始计算”生成结果。</div>
+      <div class="footer-note">
+        说明：本工具为工程简化模型。IEC 有效度、U 值与 ΔTlm 已将湿表面、水膜与设备结构的综合影响等效进整体性能参数中。
+      </div>
+    </div>
+
+    <div class="charts">
+      <div class="chart-panel">
+        <h2>送风温度 vs IEC 有效度</h2>
+        <canvas id="effChart"></canvas>
+        <div class="note">用于看 ε 提升对送风温度的影响。</div>
+      </div>
+      <div class="chart-panel">
+        <h2>风量 vs IT 负荷</h2>
+        <canvas id="airChart"></canvas>
+        <div class="note">基于当前回风温度与计算得到的送风温度绘制。</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let effChartInstance = null;
+    let airChartInstance = null;
+
+    function loadCityPreset(){
+      const city = document.getElementById("city").value;
+      const dryBulb = document.getElementById("dryBulb");
+      const humidity = document.getElementById("humidity");
+
+      if(city === "london"){
+        dryBulb.value = 28;
+        humidity.value = 50;
+      } else if(city === "birmingham"){
+        dryBulb.value = 27;
+        humidity.value = 55;
+      } else if(city === "beijing"){
+        dryBulb.value = 35;
+        humidity.value = 45;
+      } else if(city === "dubai"){
+        dryBulb.value = 42;
+        humidity.value = 25;
+      } else if(city === "singapore"){
+        dryBulb.value = 33;
+        humidity.value = 75;
+      }
+    }
+
+    function resetDefaults(){
+      document.getElementById("city").value = "custom";
+      document.getElementById("dryBulb").value = 32;
+      document.getElementById("humidity").value = 40;
+      document.getElementById("efficiency").value = 0.70;
+      document.getElementById("secondaryRatio").value = 0.40;
+      document.getElementById("faceVelocity").value = 2.5;
+      document.getElementById("uValue").value = 40;
+      document.getElementById("deltaTlm").value = 8;
+      document.getElementById("rackNumber").value = 100;
+      document.getElementById("rackPower").value = 10;
+      document.getElementById("returnTemp").value = 35;
+      document.getElementById("designSupplyLimit").value = 27;
+      document.getElementById("pressureDrop").value = 300;
+      document.getElementById("fanEfficiency").value = 0.60;
+      document.getElementById("channelGap").value = 0.006;
+      document.getElementById("channelHeight").value = 1.0;
+      document.getElementById("hxDepth").value = 1.2;
+    }
+
+    function wetBulbApprox(T, RH){
+      return T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659))
+        + Math.atan(T + RH)
+        - Math.atan(RH - 1.676331)
+        + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH)
+        - 4.686035;
+    }
+
+    function validateInputs(data){
+      if(data.RH < 0 || data.RH > 100){
+        return "相对湿度必须在 0–100 之间。";
+      }
+      if(data.efficiency <= 0 || data.efficiency >= 1){
+        return "IEC 有效度建议在 0–1 之间，且不能取 0 或 1。";
+      }
+      if(data.secondaryRatio <= 0 || data.secondaryRatio > 1){
+        return "二次空气比例建议在 0–1 之间。";
+      }
+      if(data.faceVelocity <= 0){
+        return "迎风面风速必须大于 0。";
+      }
+      if(data.uValue <= 0 || data.deltaTlm <= 0){
+        return "U 值和 ΔTlm 必须大于 0。";
+      }
+      if(data.returnTemp <= data.Tdb - 20){
+        return "输入看起来异常，请检查回风温度。";
+      }
+      if(data.racks <= 0 || data.rackPower <= 0){
+        return "机柜数量和单机柜功率必须大于 0。";
+      }
+      if(data.fanEfficiency <= 0 || data.fanEfficiency > 1){
+        return "风机效率必须在 0–1 之间。";
+      }
+      if(data.channelGap <= 0 || data.channelHeight <= 0){
+        return "通道宽度和通道高度必须大于 0。";
+      }
+      return null;
+    }
+
+    function calculateIEC(){
+      const data = {
+        Tdb: parseFloat(document.getElementById("dryBulb").value),
+        RH: parseFloat(document.getElementById("humidity").value),
+        efficiency: parseFloat(document.getElementById("efficiency").value),
+        secondaryRatio: parseFloat(document.getElementById("secondaryRatio").value),
+        faceVelocity: parseFloat(document.getElementById("faceVelocity").value),
+        uValue: parseFloat(document.getElementById("uValue").value),
+        deltaTlm: parseFloat(document.getElementById("deltaTlm").value),
+        racks: parseFloat(document.getElementById("rackNumber").value),
+        rackPower: parseFloat(document.getElementById("rackPower").value),
+        returnTemp: parseFloat(document.getElementById("returnTemp").value),
+        designSupplyLimit: parseFloat(document.getElementById("designSupplyLimit").value),
+        pressureDrop: parseFloat(document.getElementById("pressureDrop").value),
+        fanEfficiency: parseFloat(document.getElementById("fanEfficiency").value),
+        channelGap: parseFloat(document.getElementById("channelGap").value),
+        channelHeight: parseFloat(document.getElementById("channelHeight").value),
+        hxDepth: parseFloat(document.getElementById("hxDepth").value)
+      };
+
+      const err = validateInputs(data);
+      if(err){
+        alert(err);
+        return;
+      }
+
+      const itLoad = data.racks * data.rackPower; // kW
+      const wetBulb = wetBulbApprox(data.Tdb, data.RH);
+      const supplyTemp = data.Tdb - data.efficiency * (data.Tdb - wetBulb);
+
+      const rho = 1.2;     // kg/m3
+      const cp = 1005;     // J/kgK
+      const deltaT = data.returnTemp - supplyTemp;
+
+      if(deltaT <= 0){
+        alert("送风温度不能高于或等于回风温度，请检查输入参数。");
+        return;
+      }
+
+      const airflow = (itLoad * 1000) / (rho * cp * deltaT); // m3/s
+      const primaryAir = airflow;
+      const secondaryAir = airflow * data.secondaryRatio;
+
+      const hxFaceArea = primaryAir / data.faceVelocity; // m2
+      const hxArea = (itLoad * 1000) / (data.uValue * data.deltaTlm); // m2
+
+      const channelArea = data.channelGap * data.channelHeight; // m2
+      const channelNumber = hxFaceArea / channelArea;
+
+      const hxWidth = Math.sqrt(hxFaceArea);
+      const hxHeight = hxWidth;
+      const hxDepth = data.hxDepth;
+
+      const fanPower = (data.pressureDrop * airflow / data.fanEfficiency) / 1000; // kW
+      const waterUse = ((itLoad * 1000) / 2450000) * 3600 / 1000; // m3/h
+      const pue = (itLoad + fanPower) / itLoad;
+
+      let modeText = "";
+      if(supplyTemp <= data.designSupplyLimit){
+        modeText = "IEC 独立冷却";
+      } else if(supplyTemp <= data.designSupplyLimit + 3){
+        modeText = "IEC + 机械补冷";
+      } else {
+        modeText = "机械制冷为主";
+      }
+
+      document.getElementById("itLoad").innerText = itLoad.toFixed(1) + " kW";
+      document.getElementById("wetBulb").innerText = wetBulb.toFixed(1) + " °C";
+      document.getElementById("supplyTemp").innerText = supplyTemp.toFixed(1) + " °C";
+      document.getElementById("airflow").innerText = airflow.toFixed(1) + " m³/s";
+
+      document.getElementById("primaryAir").innerText = primaryAir.toFixed(1) + " m³/s";
+      document.getElementById("secondaryAir").innerText = secondaryAir.toFixed(1) + " m³/s";
+      document.getElementById("hxFaceArea").innerText = hxFaceArea.toFixed(1) + " m²";
+      document.getElementById("hxArea").innerText = hxArea.toFixed(0) + " m²";
+
+      document.getElementById("channelNumber").innerText = channelNumber.toFixed(0);
+      document.getElementById("hxSize").innerText = hxWidth.toFixed(1) + " × " + hxHeight.toFixed(1) + " × " + hxDepth.toFixed(1) + " m";
+      document.getElementById("fanPower").innerText = fanPower.toFixed(1) + " kW";
+      document.getElementById("waterUse").innerText = waterUse.toFixed(2) + " m³/h";
+
+      document.getElementById("pue").innerText = pue.toFixed(2);
+      document.getElementById("mode").innerText = modeText;
+
+      let summary = "";
+      summary += "在当前工况下，IT 负荷为 " + itLoad.toFixed(1) + " kW，室外干球温度为 " + data.Tdb.toFixed(1) + " °C，相对湿度为 " + data.RH.toFixed(1) + "%，计算湿球温度约为 " + wetBulb.toFixed(1) + " °C。";
+      summary += " 采用 IEC 有效度 " + data.efficiency.toFixed(2) + " 后，送风温度约为 " + supplyTemp.toFixed(1) + " °C。";
+      summary += " 系统所需总送风量约 " + airflow.toFixed(1) + " m³/s，其中一次空气约 " + primaryAir.toFixed(1) + " m³/s，二次空气约 " + secondaryAir.toFixed(1) + " m³/s。";
+      summary += " 在 U = " + data.uValue.toFixed(0) + " W/m²·K、ΔTlm = " + data.deltaTlm.toFixed(1) + " K 条件下，换热器总传热面积约 " + hxArea.toFixed(0) + " m²，迎风面积约 " + hxFaceArea.toFixed(1) + " m²。";
+      summary += " 按当前板间距和通道高度估算，通道数量约 " + channelNumber.toFixed(0) + " 个，设备外形可初步估为 " + hxWidth.toFixed(1) + " m × " + hxHeight.toFixed(1) + " m × " + hxDepth.toFixed(1) + " m。";
+      summary += " 风机功率约 " + fanPower.toFixed(1) + " kW，蒸发耗水约 " + waterUse.toFixed(2) + " m³/h，PUE 估算约为 " + pue.toFixed(2) + "。";
+      summary += " 运行模式判断为：" + modeText + "。";
+
+      document.getElementById("summaryText").innerText = summary;
+
+      drawEffChart(data.Tdb, wetBulb);
+      drawAirChart(supplyTemp, data.returnTemp);
+    }
+
+    function drawEffChart(Tdb, wetBulb){
+      const labels = [];
+      const values = [];
+
+      for(let e = 0.40; e <= 0.90 + 1e-9; e += 0.05){
+        labels.push(e.toFixed(2));
+        values.push((Tdb - e * (Tdb - wetBulb)).toFixed(2));
+      }
+
+      const ctx = document.getElementById("effChart").getContext("2d");
+      if(effChartInstance){
+        effChartInstance.destroy();
+      }
+
+      effChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Supply Temperature (°C)",
+            data: values,
+            tension: 0.25
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true }
+          }
+        }
+      });
+    }
+
+    function drawAirChart(supplyTemp, returnTemp){
+      const labels = [];
+      const values = [];
+      const rho = 1.2;
+      const cp = 1005;
+      const deltaT = returnTemp - supplyTemp;
+
+      for(let load = 200; load <= 2000; load += 200){
+        labels.push(load);
+        values.push(((load * 1000) / (rho * cp * deltaT)).toFixed(2));
+      }
+
+      const ctx = document.getElementById("airChart").getContext("2d");
+      if(airChartInstance){
+        airChartInstance.destroy();
+      }
+
+      airChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [{
+            label: "Airflow (m³/s)",
+            data: values,
+            tension: 0.25
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: true }
+          }
+        }
+      });
+    }
+
+    // 首次自动计算一次
+    window.onload = function(){
+      calculateIEC();
+    };
+  </script>
 </body>
-
 </html>
