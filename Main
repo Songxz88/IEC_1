@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Data Center IEC Cooling Designer</title>
+
+<style>
+
+body{
+    font-family: Arial;
+    margin:40px;
+    background:#f5f7fa;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+}
+
+.section{
+    margin-top:25px;
+}
+
+label{
+    display:block;
+    margin-top:10px;
+}
+
+input{
+    width:120px;
+    padding:5px;
+    margin-left:10px;
+}
+
+button{
+    margin-top:20px;
+    padding:10px 20px;
+    font-size:16px;
+    background:#007BFF;
+    color:white;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0056b3;
+}
+
+.result{
+    background:#f0f4ff;
+    padding:20px;
+    margin-top:20px;
+    border-radius:8px;
+}
+
+.result p{
+    font-size:18px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Data Center IEC Cooling Design Tool</h1>
+
+<div class="section">
+
+<h3>Data Center Parameters</h3>
+
+<label>
+Rack Number
+<input id="rackNumber" value="100">
+</label>
+
+<label>
+Rack Power (kW)
+<input id="rackPower" value="10">
+</label>
+
+<label>
+Return Air Temp (°C)
+<input id="returnTemp" value="35">
+</label>
+
+</div>
+
+<div class="section">
+
+<h3>Climate Conditions</h3>
+
+<label>
+Dry Bulb Temp (°C)
+<input id="dryBulb" value="32">
+</label>
+
+<label>
+Relative Humidity (%)
+<input id="humidity" value="40">
+</label>
+
+</div>
+
+<div class="section">
+
+<h3>IEC System</h3>
+
+<label>
+IEC Effectiveness
+<input id="efficiency" value="0.7">
+</label>
+
+</div>
+
+<button onclick="runCalculation()">Calculate</button>
+
+<div class="result">
+
+<h3>Results</h3>
+
+<p>IT Load: <span id="itLoad">-</span> kW</p>
+
+<p>Wet Bulb Temperature: <span id="wetBulb">-</span> °C</p>
+
+<p>Supply Air Temperature: <span id="supplyTemp">-</span> °C</p>
+
+<p>Required Airflow: <span id="airflow">-</span> m³/s</p>
+
+<p>Water Consumption: <span id="waterUse">-</span> m³/h</p>
+
+<p>PUE Estimate: <span id="pue">-</span></p>
+
+</div>
+
+</div>
+
+<script>
+
+function wetBulbTemp(T, RH){
+
+let rh = RH;
+
+let twb =
+T * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) +
+Math.atan(T + rh) -
+Math.atan(rh - 1.676331) +
+0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) -
+4.686035;
+
+return twb;
+
+}
+
+function calcIECTemp(Tdb, Twb, efficiency){
+
+return Tdb - efficiency * (Tdb - Twb);
+
+}
+
+function calcAirflow(loadKW, returnTemp, supplyTemp){
+
+let rho = 1.2;
+let cp = 1005;
+
+let Q = loadKW * 1000;
+
+let deltaT = returnTemp - supplyTemp;
+
+return Q / (rho * cp * deltaT);
+
+}
+
+function calcWaterUse(loadKW){
+
+let latent = 2450000;
+
+let kgps = (loadKW * 1000) / latent;
+
+return kgps * 3600 / 1000;
+
+}
+
+function calcPUE(itLoad, airflow){
+
+let fanPower = airflow * 0.8;
+
+let coolingPower = fanPower;
+
+return (itLoad + coolingPower) / itLoad;
+
+}
+
+function runCalculation(){
+
+let racks = parseFloat(document.getElementById("rackNumber").value);
+
+let rackPower = parseFloat(document.getElementById("rackPower").value);
+
+let returnTemp = parseFloat(document.getElementById("returnTemp").value);
+
+let Tdb = parseFloat(document.getElementById("dryBulb").value);
+
+let RH = parseFloat(document.getElementById("humidity").value);
+
+let efficiency = parseFloat(document.getElementById("efficiency").value);
+
+let itLoad = racks * rackPower;
+
+let Twb = wetBulbTemp(Tdb, RH);
+
+let supplyTemp = calcIECTemp(Tdb, Twb, efficiency);
+
+let airflow = calcAirflow(itLoad, returnTemp, supplyTemp);
+
+let water = calcWaterUse(itLoad);
+
+let pue = calcPUE(itLoad, airflow);
+
+document.getElementById("itLoad").innerText = itLoad.toFixed(1);
+
+document.getElementById("wetBulb").innerText = Twb.toFixed(1);
+
+document.getElementById("supplyTemp").innerText = supplyTemp.toFixed(1);
+
+document.getElementById("airflow").innerText = airflow.toFixed(1);
+
+document.getElementById("waterUse").innerText = water.toFixed(2);
+
+document.getElementById("pue").innerText = pue.toFixed(2);
+
+}
+
+</script>
+
+</body>
+</html>
