@@ -18,7 +18,7 @@ margin:40px;
 }
 
 .container{
-max-width:1000px;
+max-width:1100px;
 margin:auto;
 background:white;
 padding:30px;
@@ -70,7 +70,7 @@ background:#0056b3;
 
 .results{
 display:grid;
-grid-template-columns:repeat(3,1fr);
+grid-template-columns:repeat(4,1fr);
 gap:20px;
 margin-top:30px;
 }
@@ -94,6 +94,10 @@ padding:20px;
 border-radius:8px;
 }
 
+.chart-container{
+margin-top:40px;
+}
+
 </style>
 
 </head>
@@ -110,7 +114,7 @@ border-radius:8px;
 
 <h3>City Climate</h3>
 
-<select id="city">
+<select id="city" onchange="loadCity()">
 
 <option value="custom">Custom</option>
 <option value="london">London</option>
@@ -170,7 +174,7 @@ IT Load
 </div>
 
 <div class="card">
-Wet Bulb Temp
+Wet Bulb
 <div class="value" id="wetBulb">-</div>
 </div>
 
@@ -194,6 +198,16 @@ PUE
 <div class="value" id="pue">-</div>
 </div>
 
+<div class="card">
+HX Area
+<div class="value" id="hxArea">-</div>
+</div>
+
+<div class="card">
+HX Face Area
+<div class="value" id="hxFace">-</div>
+</div>
+
 </div>
 
 <div class="summary">
@@ -208,11 +222,47 @@ Run calculation to see system assessment.
 
 </div>
 
-<canvas id="chart" height="100"></canvas>
+<div class="chart-container">
+
+<canvas id="effChart"></canvas>
+
+</div>
+
+<div class="chart-container">
+
+<canvas id="airChart"></canvas>
+
+</div>
 
 </div>
 
 <script>
+
+function loadCity(){
+
+let city=document.getElementById("city").value;
+
+if(city=="london"){
+dryBulb.value=28;
+humidity.value=50;
+}
+
+if(city=="birmingham"){
+dryBulb.value=27;
+humidity.value=55;
+}
+
+if(city=="dubai"){
+dryBulb.value=42;
+humidity.value=25;
+}
+
+if(city=="singapore"){
+dryBulb.value=33;
+humidity.value=75;
+}
+
+}
 
 function wetBulbTemp(T,RH){
 
@@ -227,102 +277,143 @@ return twb;
 
 }
 
+function heatExchangerDesign(loadKW,airflow){
+
+let Q=loadKW*1000;
+
+let U=40;
+
+let dT=8;
+
+let area=Q/(U*dT);
+
+let faceVelocity=2.5;
+
+let faceArea=airflow/faceVelocity;
+
+return{area:area,faceArea:faceArea};
+
+}
+
 function calculate(){
 
-let racks = parseFloat(document.getElementById("rackNumber").value);
-let rackPower = parseFloat(document.getElementById("rackPower").value);
-let returnTemp = parseFloat(document.getElementById("returnTemp").value);
+let racks=parseFloat(document.getElementById("rackNumber").value);
+let rackPower=parseFloat(document.getElementById("rackPower").value);
+let returnTemp=parseFloat(document.getElementById("returnTemp").value);
 
-let Tdb = parseFloat(document.getElementById("dryBulb").value);
-let RH = parseFloat(document.getElementById("humidity").value);
+let Tdb=parseFloat(document.getElementById("dryBulb").value);
+let RH=parseFloat(document.getElementById("humidity").value);
 
-let efficiency = parseFloat(document.getElementById("efficiency").value);
+let efficiency=parseFloat(document.getElementById("efficiency").value);
 
-if(RH>100 || RH<0){
-alert("Relative humidity must be between 0 and 100%");
+if(RH>100||RH<0){
+alert("Humidity must be 0-100%");
 return;
 }
 
-if(efficiency>1 || efficiency<0){
-alert("IEC efficiency must be between 0 and 1");
+if(efficiency>1||efficiency<0){
+alert("Efficiency must be 0-1");
 return;
 }
 
-let itLoad = racks * rackPower;
+let itLoad=racks*rackPower;
 
-let Twb = wetBulbTemp(Tdb,RH);
+let Twb=wetBulbTemp(Tdb,RH);
 
-let supplyTemp = Tdb - efficiency*(Tdb - Twb);
+let supply=Tdb-efficiency*(Tdb-Twb);
 
-let airflow = (itLoad*1000)/(1.2*1005*(returnTemp - supplyTemp));
+let airflow=(itLoad*1000)/(1.2*1005*(returnTemp-supply));
 
-let waterUse = (itLoad*1000)/2450000*3600/1000;
+let water=(itLoad*1000)/2450000*3600/1000;
 
-let fanPower = airflow*0.8;
+let fanPower=airflow*0.8;
 
-let pue = (itLoad + fanPower)/itLoad;
+let pue=(itLoad+fanPower)/itLoad;
 
-document.getElementById("itLoad").innerText = itLoad.toFixed(1)+" kW";
-document.getElementById("wetBulb").innerText = Twb.toFixed(1)+" °C";
-document.getElementById("supplyTemp").innerText = supplyTemp.toFixed(1)+" °C";
-document.getElementById("airflow").innerText = airflow.toFixed(1)+" m³/s";
-document.getElementById("waterUse").innerText = waterUse.toFixed(2)+" m³/h";
-document.getElementById("pue").innerText = pue.toFixed(2);
+let hx=heatExchangerDesign(itLoad,airflow);
 
-let mode = "";
+document.getElementById("itLoad").innerText=itLoad.toFixed(1)+" kW";
+document.getElementById("wetBulb").innerText=Twb.toFixed(1)+" °C";
+document.getElementById("supplyTemp").innerText=supply.toFixed(1)+" °C";
+document.getElementById("airflow").innerText=airflow.toFixed(1)+" m³/s";
+document.getElementById("waterUse").innerText=water.toFixed(2)+" m³/h";
+document.getElementById("pue").innerText=pue.toFixed(2);
 
-if(supplyTemp <= 27){
+document.getElementById("hxArea").innerText=hx.area.toFixed(0)+" m²";
+document.getElementById("hxFace").innerText=hx.faceArea.toFixed(1)+" m²";
 
-mode = "IEC cooling alone can meet the server inlet temperature requirement.";
+let mode="";
+
+if(supply<=27){
+
+mode="IEC cooling alone can meet server inlet temperature.";
 
 }else{
 
-mode = "Supply temperature exceeds recommended server inlet temperature. Mechanical cooling assist may be required.";
+mode="Mechanical cooling assist required.";
 
 }
 
-document.getElementById("summaryText").innerText =
-"Calculated supply air temperature is "+supplyTemp.toFixed(1)+" °C. "+
+document.getElementById("summaryText").innerText=
+"Supply air temperature "+supply.toFixed(1)+"°C. "+
 mode+
-" Estimated airflow is "+airflow.toFixed(1)+" m³/s.";
+" Estimated airflow "+airflow.toFixed(1)+" m³/s. "+
+"Heat exchanger area "+hx.area.toFixed(0)+" m².";
 
-drawChart(Tdb,Twb);
+drawCharts(Tdb,Twb,itLoad);
 
 }
 
-function drawChart(Tdb,Twb){
+function drawCharts(Tdb,Twb,itLoad){
 
-let effs=[];
-let temps=[];
+let eff=[];
+let temp=[];
 
 for(let e=0.4;e<=0.9;e+=0.05){
 
-effs.push(e.toFixed(2));
+eff.push(e.toFixed(2));
 
-temps.push(Tdb - e*(Tdb-Twb));
+temp.push(Tdb-e*(Tdb-Twb));
 
 }
 
-new Chart(document.getElementById("chart"),{
+new Chart(document.getElementById("effChart"),{
 
 type:"line",
 
 data:{
-
-labels:effs,
-
+labels:eff,
 datasets:[{
-
-label:"Supply Temperature vs IEC Efficiency",
-
-data:temps,
-
-borderColor:"blue",
-
-fill:false
-
+label:"Supply Temp vs IEC Efficiency",
+data:temp,
+borderColor:"blue"
 }]
+}
 
+});
+
+let load=[];
+let airflow=[];
+
+for(let L=200;L<=2000;L+=200){
+
+load.push(L);
+
+airflow.push((L*1000)/(1.2*1005*10));
+
+}
+
+new Chart(document.getElementById("airChart"),{
+
+type:"line",
+
+data:{
+labels:load,
+datasets:[{
+label:"Airflow vs IT Load",
+data:airflow,
+borderColor:"green"
+}]
 }
 
 });
